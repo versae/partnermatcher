@@ -4,7 +4,7 @@ import json
 import sys
 
 from aiohttp import web
-from Levenshtein import distance, jaro, jaro_winkler, median, ratio
+from Levenshtein import distance, hamming, jaro, jaro_winkler, median, ratio
 
 
 async def home(request):
@@ -44,6 +44,8 @@ async def similarity_score(name1, name2, algorithm=None, lower=False):
         distance_func = jaro
     elif algorithm == "ratio":
         distance_func = ratio
+    elif algorithm == "hamming":
+        distance_func = hamming
     else:
         distance_func = jaro_winkler
     return distance_func(str1, str2)
