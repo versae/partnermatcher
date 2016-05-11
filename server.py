@@ -26,7 +26,11 @@ async def home(request):
                                            lower=lower)
             matrix.append({"pair": pair, "score": score})
         average = median(names)
-        response = {"names": names, "average": average, "matrix": matrix}
+        response = {
+            "names": names,
+            "average": average,
+            "matrix": sorted(matrix, key=lambda x: -x["score"])
+        }
     return web.Response(body=str.encode(json.dumps(response)))
 
 async def similarity_score(name1, name2, algorithm=None, lower=False):
@@ -42,7 +46,6 @@ async def similarity_score(name1, name2, algorithm=None, lower=False):
         distance_func = ratio
     else:
         distance_func = jaro_winkler
-    print(distance_func)
     return distance_func(str1, str2)
 
 def init(argv):
