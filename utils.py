@@ -32,7 +32,7 @@ def get_list_response(request, variable):
     if variable in request.GET:
         result = request.GET.getall(variable)
     elif variable + "s" in request.GET:
-        result = request.GET.get(variables + "s").split(",")
+        result = request.GET.get(variable + "s").split(",")
     else:
         result = None
         if variable in ["name", "names"]:
