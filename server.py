@@ -4,18 +4,16 @@ import json
 import sys
 
 from aiohttp import web
-from Levenshtein import distance, hamming, jaro, jaro_winkler, median, ratio
+from Levenshtein import median
+
+from utils import get_list_response, similarity_score, get_domains, MESSAGES
 
 
-async def home(request):
-    if "name" in request.GET:
-        names = request.GET.getall("name")
-    elif "names" in request.GET:
-        names = request.GET.get("names").split(",")
-    else:
-        names = None
-        response = {"message": ("Please, send some names to compare. Ej: "
-                                "?name=oneligin&name=OneLogin%20Inc.")}
+async def home_view(request):
+    return web.Response(body=str.encode(json.dumps(MESSAGES)))
+
+async def names_view(request):
+    names, response = get_list_response(request, "name")
     lower = request.GET.get("lower")
     algorithm = request.GET.get("algorithm")
     if names:
@@ -33,26 +31,23 @@ async def home(request):
         }
     return web.Response(body=str.encode(json.dumps(response)))
 
-async def similarity_score(name1, name2, algorithm=None, lower=False):
-    if lower:
-        str1, str2 = name1.lower(), name2.lower()
-    else:
-        str1, str2 = name1, name2
-    if algorithm == "levenshtein":
-        distance_func = distance
-    elif algorithm == "jaro":
-        distance_func = jaro
-    elif algorithm == "ratio":
-        distance_func = ratio
-    elif algorithm == "hamming":
-        distance_func = hamming
-    else:
-        distance_func = jaro_winkler
-    return distance_func(str1, str2)
+async def domains_view(request):
+    domains, response = get_list_response(request, "domain")
+    lower = request.GET.get("lower")
+    algorithm = request.GET.get("algorithm")
+    if domains:
+        domains = [n.strip() for n in domains]
+        response = {
+            "domains": domains,
+            "unique": tuple(get_domains(domains)),
+        }
+    return web.Response(body=str.encode(json.dumps(response)))
 
 def init(argv):
     app = web.Application()
-    app.router.add_route('GET', '/', home)
+    app.router.add_route('GET', '/', home_view)
+    app.router.add_route('GET', '/names', names_view)
+    app.router.add_route('GET', '/domains', domains_view)
     return app
 
 app = init(sys.argv)
